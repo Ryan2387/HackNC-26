@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
+const aiRoutes = require("./routes/ai");
 
 // Import all routes
 const userRoutes = require("./routes/users");
@@ -81,6 +82,9 @@ app.use("/api/simulations", simulationRoutes);
 
 // Capital One Nessie API
 app.use("/api/nessie", nessieRoutes);
+
+//AI Routes
+app.use("/api", aiRoutes);
 
 // ERROR HANDLING
 

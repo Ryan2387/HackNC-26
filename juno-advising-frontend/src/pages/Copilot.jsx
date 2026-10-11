@@ -33,7 +33,14 @@ export default function Copilot() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          customerId: "3a0742d9-9abc-4c17-aa09-c42e3d482c06",
+          history: messages.slice(-6),
+          uiContext: {
+          page: "copilot"
+  }
+}),
       });
 
       if (!res.ok) throw new Error("Backend not connected");
