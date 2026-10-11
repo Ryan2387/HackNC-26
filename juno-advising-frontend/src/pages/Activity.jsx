@@ -1,7 +1,7 @@
 import Transactions from "../components/Transactions";
 import Spending from "../components/Spending";
 
-export default function Activity() {
+export default function Activity({ customerId }) {
   return (
     <>
       <div className="welcome">
@@ -13,8 +13,8 @@ export default function Activity() {
       </div>
 
       <div className="bottom-grid">
-        <Transactions full />
-        <Spending />
+        <Transactions full customerId={customerId} />
+        <Spending customerId={customerId} />
       </div>
     </>
   );

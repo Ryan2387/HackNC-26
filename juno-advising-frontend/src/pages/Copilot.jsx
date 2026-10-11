@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Sparkles, Send, ChevronRight, ShieldCheck } from "lucide-react";
-import { DEMO } from "../data/demo";
-import { money } from "../utils/format";
 import Card from "../components/Card";
 
 const suggestedQuestions = [
@@ -11,11 +9,11 @@ const suggestedQuestions = [
   "Where is my money going?",
 ];
 
-export default function Copilot() {
+export default function Copilot({ customer }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "Hey Alex! I'm Juno Advising, your financial copilot. Ask me about your spending, upcoming bills, or whether a purchase fits your budget.",
+      text: `Hey ${customer.first_name}! I'm Juno Advising, your financial copilot. Ask me about your spending, upcoming bills, or whether a purchase fits your budget.`,
     },
   ]);
   const [draft, setDraft] = useState("");
@@ -35,7 +33,7 @@ export default function Copilot() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: text,
-          customerId: "3a0742d9-9abc-4c17-aa09-c42e3d482c06",
+          customerId: customer._id,
           history: messages.slice(-6),
           uiContext: {
           page: "copilot"
@@ -58,10 +56,7 @@ export default function Copilot() {
         ...current,
         {
           role: "assistant",
-          text:
-            "Demo mode: Connect your Express backend at POST /api/chat to get personalized answers from Gemini using Nessie data. Your demo balance is " +
-            money(DEMO.balance) +
-            ".",
+          text: `Live financial analysis for ${customer.first_name} is unavailable right now. Please try again later.`,
         },
       ]);
     } finally {

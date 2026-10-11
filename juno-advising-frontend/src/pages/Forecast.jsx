@@ -1,17 +1,62 @@
-import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  ShieldCheck
+} from "lucide-react";
+
 import Card from "../components/Card";
 import ForecastChart from "../components/ForecastChart";
 import Simulator from "../components/Simulator";
 import Bills from "../components/Bills";
 
-export default function Forecast() {
+import {
+  getFinancialPlan
+} from "../services/financialPlanning";
+
+export default function Forecast({ customerId }) {
+  const [financialPlan, setFinancialPlan] =
+    useState(null);
+
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    setFinancialPlan(null);
+    setError("");
+
+    getFinancialPlan(customerId)
+      .then(data => {
+        if (active) {
+          setFinancialPlan(data);
+        }
+      })
+      .catch(err => {
+        console.error("Forecast error:", err);
+
+        if (active) {
+          setError("Unable to load forecast");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [customerId]);
+
   return (
     <>
       <div className="welcome">
         <div>
-          <div className="eyebrow">LOOK FORWARD</div>
+          <div className="eyebrow">
+            LOOK FORWARD
+          </div>
+
           <h1>Your financial forecast</h1>
-          <p>See upcoming changes and test your decisions.</p>
+
+          <p>
+            See upcoming changes and test your decisions.
+          </p>
         </div>
       </div>
 
@@ -20,39 +65,77 @@ export default function Forecast() {
           <div className="section-heading">
             <div>
               <h3>30-day projection</h3>
-              <p>Estimated using scheduled sample transactions</p>
+
+              <p>
+                Based on your current checking balance
+                and known upcoming bills
+              </p>
             </div>
-            <span className="pill">Next 30 days</span>
+
+            <span className="pill">
+              Next 30 days
+            </span>
           </div>
 
-          <ForecastChart />
+          {error ? (
+            <p role="alert">{error}</p>
+          ) : financialPlan === null ? (
+            <p>Loading forecast...</p>
+          ) : (
+            <>
+              <ForecastChart
+                data={financialPlan.forecast}
+              />
+
+              <p className="body-copy">
+                {
+                  financialPlan.explanations
+                    .forecastExplanation
+                }
+              </p>
+            </>
+          )}
 
           <div className="forecast-notes">
             <span>
-              <span className="dot mint-dot" /> Estimated balance
+              <span className="dot mint-dot" />
+              Projected checking balance
             </span>
+
             <span>
-              <AlertTriangle size={14} /> Forecasts are estimates
+              <AlertTriangle size={14} />
+              Forecasts are estimates
             </span>
           </div>
         </Card>
 
-        <Simulator />
+        <Simulator plan={financialPlan} customerId={customerId} />
       </div>
 
       <div className="bottom-grid">
-        <Bills />
+        <Bills customerId={customerId} />
+
         <Card>
           <h3>How forecasts work</h3>
+
           <p className="body-copy">
-            Juno Advising combines your current balance with known upcoming
-            bills and estimated spending. For the real application, your Express
-            backend will calculate the forecast from Nessie data. Gemini can
-            explain the results but should not invent numbers.
+            Juno Advising combines your current
+            checking balance with known upcoming
+            checking-account bills to calculate
+            a baseline projection.
           </p>
+
+          <p className="body-copy">
+            Gemini analyzes that projection and
+            explains financial risks. Future
+            spending and income that have not
+            been verified are not included.
+          </p>
+
           <div className="hint">
-            <ShieldCheck size={19} /> Your financial calculations stay
-            consistent across web and iMessage.
+            <ShieldCheck size={19} />
+            Your financial calculations stay
+            consistent across views.
           </div>
         </Card>
       </div>

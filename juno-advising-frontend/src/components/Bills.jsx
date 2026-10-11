@@ -3,13 +3,17 @@ import { CalendarDays } from "lucide-react";
 import { money } from "../utils/format";
 import Card from "./Card";
 
-export default function Bills() {
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function Bills({ customerId }) {
   const [bills, setBills] = useState(null);
 
   useEffect(() => {
-    const customerId = "3a0742d9-9abc-4c17-aa09-c42e3d482c06";
+    let active = true;
+    setBills(null);
 
-    fetch(`http://localhost:3000/api/nessie/customers/${customerId}/bills`)
+    fetch(`${API_BASE}/api/nessie/customers/${customerId}/bills`)
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve bills");
@@ -28,13 +32,17 @@ export default function Bills() {
             a.upcoming_payment_date.localeCompare(b.upcoming_payment_date)
           );
 
-        setBills(upcomingBills);
+        if (active) setBills(upcomingBills);
       })
       .catch(error => {
         console.error("Nessie bills error:", error);
-        setBills([]);
+        if (active) setBills([]);
       });
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [customerId]);
 
   return (
     <Card>

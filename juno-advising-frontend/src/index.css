@@ -172,28 +172,100 @@ button:disabled {
     display:flex;
     align-items:center;
     gap:10px;
+    width:100%;
     padding:15px 3px 0;
+    color:inherit;
+    text-align:left;
+    background:transparent;
+    border:0;
     border-top:1px solid #26354a;
+    cursor:pointer;
 }
 
-.demo-user>div:nth-child(2) {
+.demo-user-copy {
     flex:1;
+    min-width:0;
     display:flex;
     flex-direction:column;
     gap:4px;
 }
 
-.demo-user strong {
+.demo-user-copy strong {
     font-size:11px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 
-.demo-user span {
+.demo-user-copy>span {
     font-size:10px;
     color:#8796ac;
+    white-space:nowrap;
 }
 
 .demo-user>svg {
     color:#8a9ab1;
+    flex-shrink:0;
+}
+
+.account-picker {
+    position:relative;
+}
+
+.account-menu {
+    position:absolute;
+    z-index:20;
+    right:0;
+    bottom:calc(100% + 10px);
+    left:0;
+    max-height:min(390px, 65vh);
+    overflow-y:auto;
+    padding:6px;
+    background:#162338;
+    border:1px solid #34465f;
+    border-radius:10px;
+    box-shadow:0 16px 36px #0008;
+}
+
+.account-option {
+    display:flex;
+    align-items:center;
+    width:100%;
+    gap:10px;
+    padding:9px;
+    color:#eaf1fa;
+    text-align:left;
+    background:transparent;
+    border:0;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.account-option:hover,
+.account-option.selected {
+    background:#263a52;
+}
+
+.account-option>span:last-child {
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+}
+
+.account-option strong {
+    font-size:11px;
+}
+
+.account-option small {
+    color:#91a3ba;
+    font-size:10px;
+}
+
+.option-avatar {
+    width:30px;
+    height:30px;
+    flex-shrink:0;
+    font-size:10px;
 }
 
 .avatar {

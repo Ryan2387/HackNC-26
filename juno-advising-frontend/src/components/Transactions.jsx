@@ -2,25 +2,35 @@ import { useEffect, useState } from "react";
 import { money } from "../utils/format";
 import Card from "./Card";
 
-export default function Transactions({ full = false }) {
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function Transactions({ full = false, customerId }) {
   const [transactions, setTransactions] = useState(null);
 
   useEffect(() => {
-    const customerId = "3a0742d9-9abc-4c17-aa09-c42e3d482c06";
+    let active = true;
+    setTransactions(null);
 
-    fetch(`http://localhost:3000/api/nessie/customers/${customerId}/transactions`)
+    fetch(`${API_BASE}/api/nessie/customers/${customerId}/transactions`)
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve transactions");
         }
         return response.json();
       })
-      .then(data => setTransactions(data))
+      .then(data => {
+        if (active) setTransactions(data);
+      })
       .catch(error => {
         console.error("Nessie transactions error:", error);
-        setTransactions([]);
+        if (active) setTransactions([]);
       });
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [customerId]);
 
   const displayedTransactions = full
     ? transactions
@@ -44,7 +54,7 @@ export default function Transactions({ full = false }) {
           displayedTransactions.map(t => (
             <div className="transaction" key={t.id}>
               <div className="merchant-icon">
-                {t.type === "deposit" ? "💰" : "💸"}
+                {t.amount >= 0 ? "💰" : "💸"}
               </div>
 
               <div className="transaction-name">

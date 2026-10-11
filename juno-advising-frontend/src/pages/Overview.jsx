@@ -6,7 +6,7 @@ import {
   ArrowUpRight,
   ChevronRight,
 } from "lucide-react";
-import { DEMO } from "../data/demo";
+
 import { money } from "../utils/format";
 import Card from "../components/Card";
 import Stat from "../components/Stat";
@@ -14,88 +14,180 @@ import ForecastChart from "../components/ForecastChart";
 import Simulator from "../components/Simulator";
 import Transactions from "../components/Transactions";
 import Bills from "../components/Bills";
-import { useEffect, useState } from "react";
 
-export default function Overview({ go }) {
+import { useEffect, useState } from "react";
+import { getFinancialPlan } from "../services/financialPlanning";
+
+const API_BASE =
+  import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export default function Overview({ go, customer }) {
   const [checkingBalance, setCheckingBalance] = useState(null);
   const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [monthlySpending, setMonthlySpending] = useState(null);
+  const [financialPlan, setFinancialPlan] = useState(null);
+  const [planningError, setPlanningError] = useState("");
 
   useEffect(() => {
-    const customerId = "3a0742d9-9abc-4c17-aa09-c42e3d482c06";
+    let active = true;
+    setCheckingBalance(null);
+    setMonthlyIncome(null);
+    setMonthlySpending(null);
 
-    fetch(`http://localhost:3000/api/nessie/customers/${customerId}/checking-balance`)
+    fetch(
+      `${API_BASE}/api/nessie/customers/${customer._id}/checking-balance`
+    )
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve checking balance");
         }
         return response.json();
       })
-      .then(data => setCheckingBalance(data.balance))
-      .catch(error => console.error("Checking balance error:", error));
+      .then(data => {
+        if (active) {
+          setCheckingBalance(data.balance);
+        }
+      })
+      .catch(error => {
+        console.error("Checking balance error:", error);
+      });
 
-      fetch(`http://localhost:3000/api/nessie/customers/${customerId}/monthly-income`)
+    fetch(
+      `${API_BASE}/api/nessie/customers/${customer._id}/monthly-income`
+    )
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve monthly income");
         }
         return response.json();
       })
-      .then(data => setMonthlyIncome(data.monthlyIncome))
-      .catch(error => console.error("Monthly income error:", error));
+      .then(data => {
+        if (active) {
+          setMonthlyIncome(data.monthlyIncome);
+        }
+      })
+      .catch(error => {
+        console.error("Monthly income error:", error);
+      });
 
-      fetch(`http://localhost:3000/api/nessie/customers/${customerId}/monthly-spending`)
+    fetch(
+      `${API_BASE}/api/nessie/customers/${customer._id}/monthly-spending`
+    )
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve monthly spending");
         }
         return response.json();
       })
-      .then(data => setMonthlySpending(data.monthlySpending))
+      .then(data => {
+        if (active) {
+          setMonthlySpending(data.monthlySpending);
+        }
+      })
       .catch(error => {
         console.error("Monthly spending error:", error);
       });
-  }, []);
+
+    return () => {
+      active = false;
+    };
+  }, [customer._id]);
+
+  useEffect(() => {
+    let active = true;
+    setFinancialPlan(null);
+    setPlanningError("");
+
+    getFinancialPlan(customer._id)
+      .then(data => {
+        if (active) {
+          setFinancialPlan(data);
+        }
+      })
+      .catch(error => {
+        console.error("Financial plan error:", error);
+
+        if (active) {
+          setPlanningError("Planning data unavailable");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [customer._id]);
 
   return (
     <>
       <div className="welcome">
         <div>
-          <div className="eyebrow">SATURDAY, OCTOBER 10, 2026</div>
+          <div className="eyebrow">
+            SATURDAY, OCTOBER 10, 2026
+          </div>
+
           <h1>
-            Good afternoon, {DEMO.name} <span className="wave">✳</span>
+            Good afternoon, {customer.first_name}{" "}
+            <span className="wave">✳</span>
           </h1>
-          <p>Here's where your money stands — and where it's headed.</p>
+
+          <p>
+            Here's where your money stands — and where
+            it's headed.
+          </p>
         </div>
-        <button className="primary-button" onClick={() => go("copilot")}>
-          <Sparkles size={17} /> Ask Juno Advising
+
+        <button
+          className="primary-button"
+          onClick={() => go("copilot")}
+        >
+          <Sparkles size={17} />
+          Ask Juno Advising
         </button>
       </div>
 
       <div className="stats-grid">
         <Stat
           label="Total balance"
-          value={checkingBalance === null ? "Loading..." : money(checkingBalance)}
+          value={
+            checkingBalance === null
+              ? "Loading..."
+              : money(checkingBalance)
+          }
           detail="Primary checking account"
           icon={Wallet}
         />
+
         <Stat
           label="Safe to spend"
-          value={money(DEMO.safeToSpend)}
-          detail="After planned expenses"
+          value={
+            financialPlan
+              ? money(financialPlan.safeToSpend)
+              : planningError || "Loading..."
+          }
+          detail="After known bills and $500 safety cushion"
           icon={ShieldCheck}
           positive
         />
+
         <Stat
           label="Monthly income"
-          value={monthlyIncome === null ? "Loading..." : money(monthlyIncome)}
-          detail="Estimated this month"
+          value={
+            monthlyIncome === null
+              ? "Loading..."
+              : money(monthlyIncome)
+          }
+          detail="Deposits received this month"
           icon={ArrowDownRight}
           positive
         />
+
         <Stat
           label="Monthly spending"
-          value={monthlySpending === null ? "Loading..." : money(monthlySpending)}
+          value={
+            monthlySpending === null
+              ? "Loading..."
+              : money(monthlySpending)
+          }
           detail="Spent so far this month"
           icon={ArrowUpRight}
         />
@@ -106,20 +198,47 @@ export default function Overview({ go }) {
           <div className="section-heading">
             <div>
               <h3>Balance forecast</h3>
-              <p>Where your money could be over the next 30 days</p>
+              <p>
+                Where your money could be over
+                the next 30 days
+              </p>
             </div>
-            <button className="text-button" onClick={() => go("forecast")}>
-              Explore <ChevronRight size={16} />
+
+            <button
+              className="text-button"
+              onClick={() => go("forecast")}
+            >
+              Explore
+              <ChevronRight size={16} />
             </button>
           </div>
-          <ForecastChart />
+
+          {planningError ? (
+            <p role="alert">{planningError}</p>
+          ) : financialPlan === null ? (
+            <p>Loading forecast...</p>
+          ) : (
+            <ForecastChart
+              data={financialPlan.forecast}
+            />
+          )}
+
+          {financialPlan?.explanations && (
+            <p className="body-copy">
+              {
+                financialPlan.explanations
+                  .forecastExplanation
+              }
+            </p>
+          )}
         </Card>
-        <Simulator />
+
+        <Simulator plan={financialPlan} />
       </div>
 
       <div className="bottom-grid">
-        <Transactions />
-        <Bills />
+        <Transactions customerId={customer._id} />
+        <Bills customerId={customer._id} />
       </div>
     </>
   );
