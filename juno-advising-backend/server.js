@@ -1,28 +1,42 @@
-
 require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
 
+// Import all routes
+const userRoutes = require("./routes/users");
+const budgetRoutes = require("./routes/budgets");
+const forecastRoutes = require("./routes/forecasts");
+const recommendationRoutes = require("./routes/recommendations");
+const simulationRoutes = require("./routes/simulations");
+const goalRoutes = require("./routes/goals");
+
+// Initialize Express
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// MIDDLEWARE
+
+// Allow React frontend to communicate with Express
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173"
 }));
 
+// Parse incoming JSON requests
 app.use(express.json());
 
-// Test whether the backend is running
+// TEST ROUTES
+
+// Check if backend is running
 app.get("/", (req, res) => {
   res.json({
-    message: "Juno Advising API is running!"
+    message: "Juno Advising API is running!",
+    status: "success"
   });
 });
 
-// Test the TigerData connection
+// Test TigerData connection
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await db.query(
@@ -31,6 +45,7 @@ app.get("/api/test-db", async (req, res) => {
 
     res.json({
       message: "Successfully connected to TigerData!",
+      status: "success",
       time: result.rows[0].current_time
     });
 
@@ -43,25 +58,47 @@ app.get("/api/test-db", async (req, res) => {
   }
 });
 
-// Get all users (temporary testing route)
-app.get("/api/users", async (req, res) => {
-  try {
-    const result = await db.query(
-      "SELECT id, name, email, nessie_customer_id FROM users"
-    );
+// API ROUTES
 
-    res.json(result.rows);
+// Users
+app.use("/api/users", userRoutes);
 
-  } catch (error) {
-    console.error("Error fetching users:", error);
+// Budgets
+app.use("/api/budgets", budgetRoutes);
 
-    res.status(500).json({
-      error: "Failed to fetch users"
-    });
-  }
+// Financial Goals
+app.use("/api/goals", goalRoutes);
+
+// Financial Forecasts
+app.use("/api/forecasts", forecastRoutes);
+
+// Financial Recommendations
+app.use("/api/recommendations", recommendationRoutes);
+
+// Financial Simulations
+app.use("/api/simulations", simulationRoutes);
+
+// ERROR HANDLING
+
+// Handle unknown endpoints
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl
+  });
 });
 
-// Start the Express server
+// Handle unexpected errors
+app.use((err, req, res, next) => {
+  console.error("Server error:", err);
+
+  res.status(500).json({
+    error: "Internal server error"
+  });
+});
+
+// START SERVER
+
 app.listen(PORT, () => {
   console.log(`Juno backend running on port ${PORT}`);
 });
