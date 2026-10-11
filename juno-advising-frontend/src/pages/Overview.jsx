@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 export default function Overview({ go }) {
   const [checkingBalance, setCheckingBalance] = useState(null);
   const [monthlyIncome, setMonthlyIncome] = useState(null);
+  const [monthlySpending, setMonthlySpending] = useState(null);
 
   useEffect(() => {
     const customerId = "3a0742d9-9abc-4c17-aa09-c42e3d482c06";
@@ -42,6 +43,18 @@ export default function Overview({ go }) {
       })
       .then(data => setMonthlyIncome(data.monthlyIncome))
       .catch(error => console.error("Monthly income error:", error));
+
+      fetch(`http://localhost:3000/api/nessie/customers/${customerId}/monthly-spending`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to retrieve monthly spending");
+        }
+        return response.json();
+      })
+      .then(data => setMonthlySpending(data.monthlySpending))
+      .catch(error => {
+        console.error("Monthly spending error:", error);
+      });
   }, []);
 
   return (
@@ -82,7 +95,7 @@ export default function Overview({ go }) {
         />
         <Stat
           label="Monthly spending"
-          value={money(DEMO.spent)}
+          value={monthlySpending === null ? "Loading..." : money(monthlySpending)}
           detail="Spent so far this month"
           icon={ArrowUpRight}
         />

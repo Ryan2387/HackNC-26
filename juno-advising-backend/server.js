@@ -11,10 +11,7 @@ const forecastRoutes = require("./routes/forecasts");
 const recommendationRoutes = require("./routes/recommendations");
 const simulationRoutes = require("./routes/simulations");
 const goalRoutes = require("./routes/goals");
-<<<<<<< HEAD
-=======
 const nessieRoutes = require("./routes/nessie");
->>>>>>> 8caa7d4aad066986d9b622f272df4f4a14139d13
 
 // Initialize Express
 const app = express();
@@ -82,13 +79,11 @@ app.use("/api/recommendations", recommendationRoutes);
 // Financial Simulations
 app.use("/api/simulations", simulationRoutes);
 
-<<<<<<< HEAD
-=======
-// Nessie API
+// Capital One Nessie API
 app.use("/api/nessie", nessieRoutes);
 
->>>>>>> 8caa7d4aad066986d9b622f272df4f4a14139d13
 // ERROR HANDLING
+
 
 // Handle unknown endpoints
 app.use((req, res) => {

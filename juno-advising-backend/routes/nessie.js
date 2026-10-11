@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const nessie = require("../services/nessie");
+const db = require("../db");
 
 // Get all accounts for a customer
 router.get("/customers/:customerId/accounts", async (req, res) => {
@@ -167,6 +168,150 @@ router.get("/customers/:customerId/transactions", async (req, res) => {
   } catch (error) {
     console.error("Nessie transactions error:", error);
     res.status(502).json({ error: "Failed to retrieve Nessie transactions" });
+  }
+});
+
+// Combine TigerData purchases/transfers with Nessie deposits/withdrawals
+router.get("/customers/:customerId/all-transactions", async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    // 1. Get the customer's accounts from Nessie
+    const accounts = await nessie.getCustomerAccounts(customerId);
+
+    const accountIds = accounts.map(account => account._id);
+    const accountNames = new Map(
+      accounts.map(account => [account._id, account.nickname])
+    );
+
+    // 2. Retrieve deposits and withdrawals from Nessie
+    const nessieResults = await Promise.all(
+      accounts.map(async account => {
+        const [deposits, withdrawals] = await Promise.all([
+          nessie.getAccountDeposits(account._id),
+          nessie.getAccountWithdrawals(account._id)
+        ]);
+
+        return [
+          ...deposits.map(deposit => ({
+            id: `nessie-deposit-${deposit._id}`,
+            source: "nessie",
+            type: "deposit",
+            account: account.nickname,
+            description: deposit.description,
+            date: deposit.transaction_date,
+            amount: Number(deposit.amount)
+          })),
+          ...withdrawals.map(withdrawal => ({
+            id: `nessie-withdrawal-${withdrawal._id}`,
+            source: "nessie",
+            type: "withdrawal",
+            account: account.nickname,
+            description: withdrawal.description,
+            date: withdrawal.transaction_date,
+            amount: -Math.abs(Number(withdrawal.amount))
+          }))
+        ];
+      })
+    );
+
+    const nessieTransactions = nessieResults.flat();
+
+    // 3. Get purchases associated with Nessie accounts
+    const purchasesResult = await db.query(
+      `SELECT id, transaction_date, status, amount,
+              description, account_id
+       FROM purchase
+       WHERE account_id = ANY($1::varchar[])`,
+      [accountIds]
+    );
+
+    const purchases = purchasesResult.rows.map(purchase => ({
+      id: `tiger-purchase-${purchase.id}`,
+      source: "tigerdata",
+      type: "purchase",
+      account: accountNames.get(purchase.account_id),
+      description: purchase.description,
+      date: purchase.transaction_date.toISOString().slice(0, 10),
+      amount: -Math.abs(Number(purchase.amount))
+    }));
+
+    // 4. Get transfers associated with Nessie accounts
+    const transfersResult = await db.query(
+      `SELECT transfer_date, status, amount, description,
+              origin_account, end_account
+       FROM transfer
+       WHERE origin_account = ANY($1::varchar[])
+          OR end_account = ANY($1::varchar[])`,
+      [accountIds]
+    );
+
+    const transfers = transfersResult.rows.map((transfer, index) => {
+      const outgoing = accountIds.includes(transfer.origin_account);
+
+      return {
+        id: `tiger-transfer-${index}-${transfer.transfer_date.getTime()}`,
+        source: "tigerdata",
+        type: "transfer",
+        account: outgoing
+          ? accountNames.get(transfer.origin_account)
+          : accountNames.get(transfer.end_account),
+        description: transfer.description,
+        date: transfer.transfer_date.toISOString().slice(0, 10),
+        amount: outgoing
+          ? -Math.abs(Number(transfer.amount))
+          : Math.abs(Number(transfer.amount))
+      };
+    });
+
+    // 5. Merge everything
+    const allTransactions = [
+      ...nessieTransactions,
+      ...purchases,
+      ...transfers
+    ];
+
+    // 6. Sort by date, newest first
+    allTransactions.sort((a, b) => b.date.localeCompare(a.date));
+
+    res.json(allTransactions);
+
+  } catch (error) {
+    console.error("Combined transactions error:", error);
+    res.status(502).json({
+      error: "Failed to retrieve combined transactions"
+    });
+  }
+});
+
+// Calculate current month's spending from TigerData purchases
+router.get("/customers/:customerId/monthly-spending", async (req, res) => {
+  try {
+    const accounts = await nessie.getCustomerAccounts(req.params.customerId);
+
+    const accountIds = accounts.map(account => account._id);
+
+    const result = await db.query(
+      `SELECT COALESCE(SUM(amount), 0) AS monthly_spending
+       FROM purchase
+       WHERE account_id = ANY($1::varchar[])
+         AND transaction_date >= DATE_TRUNC('month', CURRENT_DATE)
+         AND transaction_date < DATE_TRUNC('month', CURRENT_DATE)
+                                + INTERVAL '1 month'
+         AND status = 'completed'`,
+      [accountIds]
+    );
+
+    res.json({
+      monthlySpending: Number(result.rows[0].monthly_spending)
+    });
+
+  } catch (error) {
+    console.error("Monthly spending error:", error);
+
+    res.status(500).json({
+      error: "Failed to calculate monthly spending"
+    });
   }
 });
 
