@@ -11,6 +11,7 @@ const forecastRoutes = require("./routes/forecasts");
 const recommendationRoutes = require("./routes/recommendations");
 const simulationRoutes = require("./routes/simulations");
 const goalRoutes = require("./routes/goals");
+const nessieRoutes = require("./routes/nessie");
 
 // Initialize Express
 const app = express();
@@ -77,6 +78,9 @@ app.use("/api/recommendations", recommendationRoutes);
 
 // Financial Simulations
 app.use("/api/simulations", simulationRoutes);
+
+// Nessie API
+app.use("/api/nessie", nessieRoutes);
 
 // ERROR HANDLING
 
