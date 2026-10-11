@@ -47,26 +47,45 @@ button:disabled {
 }
 
 .brand {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:0 14px 48px;
-    font-family:Manrope,sans-serif;
-    font-size:27px;
-    font-weight:800;
-    letter-spacing:-1.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px 48px;
+  font-family: Manrope, sans-serif;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
 }
 
 .brand-mark {
-    background:#62e2c2;
-    color:#0a1a24;
-    border-radius:12px;
-    padding:8px;
-    display:flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+
+  background: #61ddbf;
+  border-radius: 12px;
+
+  box-shadow: 0 4px 15px rgba(97, 221, 191, 0.25);
+  transition: all 0.3s ease;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.brand-mark:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(97, 221, 191, 0.4);
 }
 
 .brand-period {
-    color:#61ddbf;
+  color: #61ddbf;
 }
 
 .sidebar-label,.eyebrow {

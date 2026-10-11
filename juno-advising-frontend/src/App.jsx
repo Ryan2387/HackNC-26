@@ -5,6 +5,7 @@ import Overview from './pages/Overview';
 import Forecast from './pages/Forecast';
 import Copilot from './pages/Copilot';
 import Activity from './pages/Activity';
+import junoLogo from './assets/juno-logo.png';
 
 export default function App() {
   const [page, setPage] = useState('dashboard');
@@ -16,13 +17,11 @@ export default function App() {
     <aside className={'sidebar ' + (mobile ? 'open' : '')}>
       <div className="brand">
         <div className="brand-mark">
-          <TrendingUp size={22} />
+          <img src={junoLogo} alt="Juno Logo" className="brand-logo" />
         </div>
-        <span>Juno<span className="brand-period">.</span>
+        <span>
+          Juno<span className="brand-period">.</span>
         </span>
-        <button className="mobile-close" onClick={() => setMobile(false)} aria-label="Close menu">
-          <X size={20} />
-        </button>
       </div>
       <div className="sidebar-label">WORKSPACE</div>
       <nav>{nav.map(n => <button key={n.id} className={'nav-link ' + (page === n.id ? 'active' : '')} onClick={() => go(n.id)}>
