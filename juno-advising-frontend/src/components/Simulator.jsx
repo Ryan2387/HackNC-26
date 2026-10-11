@@ -16,6 +16,10 @@ export default function Simulator({ plan, customerId }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const maxPurchaseAmount = Math.max(
+    1200,
+    Math.ceil(Number(plan?.startingBalance || 0) / 500) * 500
+  );
 
   async function handleSimulation() {
     setLoading(true);
@@ -70,7 +74,7 @@ export default function Simulator({ plan, customerId }) {
         id="amount"
         type="range"
         min="0"
-        max="1200"
+        max={maxPurchaseAmount}
         step="25"
         value={amount}
         onChange={event => {
@@ -81,7 +85,7 @@ export default function Simulator({ plan, customerId }) {
 
       <div className="range-ends">
         <span>$0</span>
-        <span>$1,200</span>
+        <span>{money(maxPurchaseAmount)}</span>
       </div>
 
       <div className="field-label">
@@ -159,9 +163,9 @@ export default function Simulator({ plan, customerId }) {
       )}
 
       <small className="muted">
-        Estimate based on known checking-account
-        bills. Future income and unscheduled expenses
-        are not included.
+        Recent checking cash flow and known bills are
+        carried forward as an estimate; actual activity
+        may differ.
       </small>
     </Card>
   );

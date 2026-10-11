@@ -24,6 +24,7 @@ const API_BASE =
 export default function Overview({ go, customer }) {
   const [checkingBalance, setCheckingBalance] = useState(null);
   const [monthlyIncome, setMonthlyIncome] = useState(null);
+  const [incomePeriod, setIncomePeriod] = useState(null);
   const [monthlySpending, setMonthlySpending] = useState(null);
   const [financialPlan, setFinancialPlan] = useState(null);
   const [planningError, setPlanningError] = useState("");
@@ -32,6 +33,7 @@ export default function Overview({ go, customer }) {
     let active = true;
     setCheckingBalance(null);
     setMonthlyIncome(null);
+    setIncomePeriod(null);
     setMonthlySpending(null);
 
     fetch(
@@ -64,6 +66,7 @@ export default function Overview({ go, customer }) {
       .then(data => {
         if (active) {
           setMonthlyIncome(data.monthlyIncome);
+          setIncomePeriod(data.incomePeriod);
         }
       })
       .catch(error => {
@@ -176,7 +179,11 @@ export default function Overview({ go, customer }) {
               ? "Loading..."
               : money(monthlyIncome)
           }
-          detail="Deposits received this month"
+          detail={monthlyIncome === null
+            ? "Loading checking deposits"
+            : incomePeriod
+              ? `Deposits in ${new Date(`${incomePeriod}-01T00:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`
+              : "No recent checking deposits"}
           icon={ArrowDownRight}
           positive
         />

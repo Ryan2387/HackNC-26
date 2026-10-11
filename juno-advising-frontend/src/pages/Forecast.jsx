@@ -67,8 +67,8 @@ export default function Forecast({ customerId }) {
               <h3>30-day projection</h3>
 
               <p>
-                Based on your current checking balance
-                and known upcoming bills
+                Based on recent checking activity and
+                known upcoming bills
               </p>
             </div>
 
@@ -119,17 +119,16 @@ export default function Forecast({ customerId }) {
           <h3>How forecasts work</h3>
 
           <p className="body-copy">
-            Juno Advising combines your current
-            checking balance with known upcoming
-            checking-account bills to calculate
-            a baseline projection.
+            Juno Advising carries forward your recent
+            average daily net flow from completed
+            checking transactions and subtracts known
+            upcoming checking-account bills.
           </p>
 
           <p className="body-copy">
-            Gemini analyzes that projection and
-            explains financial risks. Future
-            spending and income that have not
-            been verified are not included.
+            Recent activity may include one-time
+            transactions, so this estimate is not a
+            guarantee of future income or spending.
           </p>
 
           <div className="hint">

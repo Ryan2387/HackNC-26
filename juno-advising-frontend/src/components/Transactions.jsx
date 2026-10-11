@@ -12,7 +12,7 @@ export default function Transactions({ full = false, customerId }) {
     let active = true;
     setTransactions(null);
 
-    fetch(`${API_BASE}/api/nessie/customers/${customerId}/transactions`)
+    fetch(`${API_BASE}/api/nessie/customers/${customerId}/all-transactions`)
       .then(response => {
         if (!response.ok) {
           throw new Error("Failed to retrieve transactions");
@@ -23,7 +23,7 @@ export default function Transactions({ full = false, customerId }) {
         if (active) setTransactions(data);
       })
       .catch(error => {
-        console.error("Nessie transactions error:", error);
+        console.error("Combined transactions error:", error);
         if (active) setTransactions([]);
       });
 
@@ -41,7 +41,7 @@ export default function Transactions({ full = false, customerId }) {
       <div className="section-heading">
         <div>
           <h3>Recent transactions</h3>
-          <p>Your latest account activity</p>
+          <p>Nessie and TigerData activity</p>
         </div>
       </div>
 

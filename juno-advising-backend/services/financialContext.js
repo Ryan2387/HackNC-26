@@ -51,6 +51,7 @@ async function getFinancialContext(customerId, userId) {
           .filter(isCompleted)
           .map(d => ({
             id: `deposit:${d._id}`,
+            accountId: account._id,
             type: "deposit",
             date: d.transaction_date,
             description: d.description || "Deposit",
@@ -61,6 +62,7 @@ async function getFinancialContext(customerId, userId) {
           .filter(isCompleted)
           .map(w => ({
             id: `withdrawal:${w._id}`,
+            accountId: account._id,
             type: "withdrawal",
             date: w.transaction_date,
             description: w.description || "Withdrawal",
@@ -71,7 +73,7 @@ async function getFinancialContext(customerId, userId) {
   );
 
   const purchaseResult = await db.query(
-    `SELECT id, transaction_date, description,
+    `SELECT id, account_id, transaction_date, description,
             amount, status
      FROM purchase
      WHERE account_id = ANY($1::varchar[])
@@ -83,6 +85,7 @@ async function getFinancialContext(customerId, userId) {
     .filter(isCompleted)
     .map(p => ({
       id: `purchase:${p.id}`,
+      accountId: p.account_id,
       type: "purchase",
       date: new Date(p.transaction_date)
         .toISOString().slice(0, 10),
@@ -175,18 +178,25 @@ async function getFinancialContext(customerId, userId) {
   return {
     asOf: new Date().toISOString().slice(0, 10),
     currency: "USD",
+    checkingAccountId: checking?._id || null,
     checkingBalance: checking
       ? Number(accountDetails.balance)
       : null,
+    checkingTransactions: transactions
+      .filter(transaction =>
+        transaction.accountId === checking?._id
+      )
+      .slice(0, 40),
     monthlyTotals,
     recentTransactions: transactions.slice(0, 40),
     bills: (Array.isArray(bills) ? bills : [])
-      .slice(0, 15)
       .map(b => ({
         id: `bill:${b._id}`,
         payee: b.payee,
-        amount: b.payment_amount ?? b.amount,
+        amount: Number(b.payment_amount ?? b.amount),
         paymentDate: b.payment_date,
+        upcomingPaymentDate: b.upcoming_payment_date,
+        accountId: b.account_id,
         status: b.status
       })),
     forecasts,

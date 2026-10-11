@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Leaf, Menu, ChevronRight, Bell, Sparkles, ChevronsUpDown } from 'lucide-react';
+import { Leaf, Menu, ChevronRight, Sparkles, ChevronsUpDown } from 'lucide-react';
 import { nav } from './data/navigation';
 import Overview from './pages/Overview';
 import Forecast from './pages/Forecast';
@@ -19,7 +19,6 @@ const customers = [
 export default function App() {
   const [page, setPage] = useState('dashboard');
   const [mobile, setMobile] = useState(false);
-  const [notice, setNotice] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(customers[0]);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef(null);
@@ -127,16 +126,10 @@ export default function App() {
         <div className="top-actions">
           <span className="demo-pill">
             <span /> DEMO DATA</span>
-          <button aria-label="Notifications" className="icon-button" onClick={() => setNotice(!notice)}>
-            <Bell size={19} />
-          </button>
           <div className="avatar small" aria-label={`Selected account: ${customerName}`} title={customerName}>
             {customerInitials}
           </div>
-        </div>{notice && <div className="notification-pop">
-          <strong>You're all caught up</strong>
-          <p>Alerts will appear here once connected to the backend.</p>
-        </div>}</header>
+        </div></header>
       <div className="content">{page === 'dashboard' ? <Overview key={selectedCustomer._id} go={go} customer={selectedCustomer} /> : page === 'forecast' ? <Forecast key={selectedCustomer._id} customerId={selectedCustomer._id} /> : page === 'copilot' ? <Copilot key={selectedCustomer._id} customer={selectedCustomer} /> : <Activity key={selectedCustomer._id} customerId={selectedCustomer._id} />}<footer>
         <span>© 2026 Juno Advising · HackNC prototype</span>
         <span>Powered by smarter decisions <Sparkles size={13} />

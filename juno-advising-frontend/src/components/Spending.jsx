@@ -20,7 +20,7 @@ export default function Spending({ customerId }) {
     let active = true;
     setTransactions(null);
 
-    fetch(`${API_BASE}/api/nessie/customers/${customerId}/transactions`)
+    fetch(`${API_BASE}/api/nessie/customers/${customerId}/all-transactions`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to retrieve transactions');
@@ -45,7 +45,11 @@ export default function Spending({ customerId }) {
 
   for (const transaction of transactions || []) {
     const signedAmount = Number(transaction.amount);
-    if (!Number.isFinite(signedAmount) || signedAmount >= 0) continue;
+    if (
+      transaction.type === 'transfer' ||
+      !Number.isFinite(signedAmount) ||
+      signedAmount >= 0
+    ) continue;
     const amount = Math.abs(signedAmount);
 
     const description = String(transaction.description || '');

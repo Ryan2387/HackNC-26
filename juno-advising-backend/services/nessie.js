@@ -1,3 +1,4 @@
+
 const BASE_URL = "https://api.nessieisreal.com";
 
 async function nessieRequest(endpoint) {
@@ -13,10 +14,17 @@ async function nessieRequest(endpoint) {
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Nessie API request failed: ${response.status}`);
+    throw new Error(
+      `Nessie API request failed: ${response.status}`
+    );
   }
 
   return response.json();
+}
+
+// Get one customer by ID
+async function getCustomer(customerId) {
+  return nessieRequest(`/customers/${customerId}`);
 }
 
 // Get all accounts belonging to a customer
@@ -45,6 +53,7 @@ async function getCustomerBills(customerId) {
 }
 
 module.exports = {
+  getCustomer,
   getCustomerAccounts,
   getAccount,
   getAccountDeposits,

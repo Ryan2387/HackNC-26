@@ -82,7 +82,7 @@ function createHandler(defaultQuestion) {
       res.json(analysis);
 
     } catch (error) {
-      console.error("AI workflow error:", error.message);
+      console.error("AI workflow error:", error);
 
       res.status(502).json({
         error: "Financial analysis unavailable"
