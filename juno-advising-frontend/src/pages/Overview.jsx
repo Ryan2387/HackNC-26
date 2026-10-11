@@ -14,8 +14,36 @@ import ForecastChart from "../components/ForecastChart";
 import Simulator from "../components/Simulator";
 import Transactions from "../components/Transactions";
 import Bills from "../components/Bills";
+import { useEffect, useState } from "react";
 
 export default function Overview({ go }) {
+  const [checkingBalance, setCheckingBalance] = useState(null);
+  const [monthlyIncome, setMonthlyIncome] = useState(null);
+
+  useEffect(() => {
+    const customerId = "3a0742d9-9abc-4c17-aa09-c42e3d482c06";
+
+    fetch(`http://localhost:3000/api/nessie/customers/${customerId}/checking-balance`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to retrieve checking balance");
+        }
+        return response.json();
+      })
+      .then(data => setCheckingBalance(data.balance))
+      .catch(error => console.error("Checking balance error:", error));
+
+      fetch(`http://localhost:3000/api/nessie/customers/${customerId}/monthly-income`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Failed to retrieve monthly income");
+        }
+        return response.json();
+      })
+      .then(data => setMonthlyIncome(data.monthlyIncome))
+      .catch(error => console.error("Monthly income error:", error));
+  }, []);
+
   return (
     <>
       <div className="welcome">
@@ -34,8 +62,8 @@ export default function Overview({ go }) {
       <div className="stats-grid">
         <Stat
           label="Total balance"
-          value={money(DEMO.balance)}
-          detail="Across your linked demo accounts"
+          value={checkingBalance === null ? "Loading..." : money(checkingBalance)}
+          detail="Primary checking account"
           icon={Wallet}
         />
         <Stat
@@ -47,7 +75,7 @@ export default function Overview({ go }) {
         />
         <Stat
           label="Monthly income"
-          value={money(DEMO.income)}
+          value={monthlyIncome === null ? "Loading..." : money(monthlyIncome)}
           detail="Estimated this month"
           icon={ArrowDownRight}
           positive
